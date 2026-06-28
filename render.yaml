@@ -5,7 +5,7 @@ services:
     env: docker
     plan: free
     dockerContext: ./backend
-    dockerfilePath: ./Dockerfile
+    dockerfilePath: ./backend/Dockerfile
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -31,7 +31,7 @@ services:
     env: docker
     plan: free
     dockerContext: ./worker
-    dockerfilePath: ./Dockerfile
+    dockerfilePath: ./worker/Dockerfile
     envVars:
       - key: RABBITMQ_URL
         sync: false # Must be provided in dashboard (CloudAMQP)
