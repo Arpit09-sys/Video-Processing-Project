@@ -17,7 +17,6 @@ export const videoApi = {
     if (title) formData.append('title', title);
 
     return api.post('/videos/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
       onUploadProgress: (progressEvent) => {
         const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
         if (onProgress) onProgress(percent);
