@@ -45,12 +45,13 @@ services:
       - key: PORT
         value: "8081"
 
+  # Redis Cache
+  - type: redis
+    name: vpp-redis
+    plan: free
+
 databases:
   - name: vpp-postgres
     databaseName: videodb
     user: videouser
-    plan: free
-
-  - type: redis
-    name: vpp-redis
     plan: free
