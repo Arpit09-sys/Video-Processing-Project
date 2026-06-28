@@ -49,6 +49,7 @@ services:
   - type: redis
     name: vpp-redis
     plan: free
+    ipAllowList: []
 
 databases:
   - name: vpp-postgres
