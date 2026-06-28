@@ -4,7 +4,8 @@ services:
     name: vpp-backend
     env: docker
     plan: free
-    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -29,7 +30,8 @@ services:
     name: vpp-worker
     env: docker
     plan: free
-    dockerfilePath: ./worker/Dockerfile
+    dockerContext: ./worker
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: RABBITMQ_URL
         sync: false # Must be provided in dashboard (CloudAMQP)
