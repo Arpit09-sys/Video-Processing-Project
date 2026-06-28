@@ -1,0 +1,56 @@
+services:
+  # Backend API
+  - type: web
+    name: vpp-backend
+    env: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: vpp-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: vpp-redis
+          property: connectionString
+      - key: RABBITMQ_URL
+        sync: false # Must be provided in dashboard (CloudAMQP)
+      - key: STORAGE_PATH
+        value: /data/blobs
+      - key: SPRING_PROFILES_ACTIVE
+        value: render
+      - key: PORT
+        value: "8080"
+
+  # Worker Service
+  - type: web
+    name: vpp-worker
+    env: docker
+    plan: free
+    dockerfilePath: ./worker/Dockerfile
+    envVars:
+      - key: RABBITMQ_URL
+        sync: false # Must be provided in dashboard (CloudAMQP)
+      - key: STORAGE_PATH
+        value: /data/blobs
+      - key: API_BASE_URL
+        fromService:
+          type: web
+          name: vpp-backend
+          property: host
+      - key: SPRING_PROFILES_ACTIVE
+        value: render
+      - key: PORT
+        value: "8081"
+
+databases:
+  - name: vpp-postgres
+    databaseName: videodb
+    user: videouser
+    plan: free
+
+  - type: redis
+    name: vpp-redis
+    plan: free

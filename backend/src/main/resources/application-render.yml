@@ -1,0 +1,13 @@
+spring:
+  datasource:
+    url: ${DATABASE_URL}
+  data:
+    redis:
+      url: ${REDIS_URL}
+  rabbitmq:
+    addresses: ${RABBITMQ_URL}
+
+app:
+  storage:
+    base-path: /data/blobs
+    base-url: https://vpp-backend.onrender.com

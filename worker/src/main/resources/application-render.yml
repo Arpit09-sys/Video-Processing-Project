@@ -1,0 +1,9 @@
+spring:
+  rabbitmq:
+    addresses: ${RABBITMQ_URL}
+
+app:
+  storage:
+    base-path: /data/blobs
+  api:
+    base-url: https://vpp-backend.onrender.com
