@@ -1,0 +1,42 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: video-processing-worker
+
+  threads:
+    virtual:
+      enabled: true
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    listener:
+      simple:
+        concurrency: 2
+        max-concurrency: 5
+        prefetch: 1
+        default-requeue-rejected: false
+
+app:
+  storage:
+    base-path: ${STORAGE_PATH:/data/blobs}
+  api:
+    base-url: ${API_BASE_URL:http://localhost:8080}
+  rabbitmq:
+    queue: video-transcoding-queue
+  ffmpeg:
+    path: ${FFMPEG_PATH:ffmpeg}
+    ffprobe-path: ${FFPROBE_PATH:ffprobe}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
