@@ -94,32 +94,32 @@ function UploadZone({ onUploadComplete, onError }) {
           <div className="upload-form" onClick={(e) => e.stopPropagation()}>
             <div className="upload-form-inputs">
               <div className="selected-file">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '4px'}}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '4px' }}>
                   <polygon points="23 7 16 12 23 17 23 7"></polygon>
                   <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
                 </svg>
                 {file.name} ({formatSize(file.size)})
               </div>
               <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Video title (optional)"
-            />
-            <button
-              className="btn btn-primary"
-              onClick={handleUpload}
-              disabled={uploading}
-            >
-              {uploading ? (
-                <>
-                  <span className="spinner"></span>
-                  Uploading...
-                </>
-              ) : (
-                'Upload & Process'
-              )}
-            </button>
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Video title (optional)"
+              />
+              <button
+                className="btn btn-primary"
+                onClick={handleUpload}
+                disabled={uploading}
+              >
+                {uploading ? (
+                  <>
+                    <span className="spinner"></span>
+                    Uploading...
+                  </>
+                ) : (
+                  'Upload & Process'
+                )}
+              </button>
             </div>
           </div>
         )}

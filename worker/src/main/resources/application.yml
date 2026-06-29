@@ -31,6 +31,8 @@ app:
   ffmpeg:
     path: ${FFMPEG_PATH:ffmpeg}
     ffprobe-path: ${FFPROBE_PATH:ffprobe}
+  processing:
+    simulate: ${SIMULATE_PROCESSING:false}
 
 management:
   endpoints:

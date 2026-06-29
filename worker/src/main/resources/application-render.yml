@@ -6,4 +6,6 @@ app:
   storage:
     base-path: /data/blobs
   api:
-    base-url: https://vpp-backend.onrender.com
+    base-url: ${API_BASE_URL:https://vpp-backend.onrender.com}
+  processing:
+    simulate: true

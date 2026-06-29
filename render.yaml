@@ -54,10 +54,9 @@ services:
       - key: STORAGE_PATH
         value: /data/blobs
       - key: API_BASE_URL
-        fromService:
-          type: web
-          name: vpp-backend
-          property: host
+        value: https://vpp-backend.onrender.com
+      - key: SIMULATE_PROCESSING
+        value: "true"
       - key: SPRING_PROFILES_ACTIVE
         value: render
       - key: PORT
