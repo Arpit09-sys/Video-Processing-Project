@@ -15,7 +15,8 @@ function VideoGrid({ videos, loading, onPlay, onDelete }) {
 
   const formatDate = (dateStr) => {
     if (!dateStr) return '—';
-    const d = new Date(dateStr);
+    // Append 'Z' if missing to ensure it parses as UTC
+    const d = new Date(dateStr.endsWith('Z') ? dateStr : `${dateStr}Z`);
     return d.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',

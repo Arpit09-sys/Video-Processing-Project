@@ -36,7 +36,8 @@ function VideoPlayer({ video, onClose }) {
 
   const formatDate = (dateStr) => {
     if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleString();
+    const d = new Date(dateStr.endsWith('Z') ? dateStr : `${dateStr}Z`);
+    return d.toLocaleString();
   };
 
   // Close on Escape key
