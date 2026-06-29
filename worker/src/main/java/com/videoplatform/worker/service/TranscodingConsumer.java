@@ -2,8 +2,6 @@ package com.videoplatform.worker.service;
 
 import com.videoplatform.worker.dto.TranscodeMessage;
 import com.videoplatform.worker.dto.VideoStatusUpdate;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -14,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jakarta.annotation.PostConstruct;
 import java.nio.file.Files;
@@ -21,20 +21,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
-/**
- * RabbitMQ consumer that processes video transcoding jobs.
- * Listens to the transcoding queue, invokes FFmpeg for 480p/720p/1080p,
- * and reports status updates back to the API service.
- *
- * When {@code app.processing.simulate=true}, skips actual FFmpeg processing
- * and simulates the transcoding pipeline with status updates and delays.
- * This is needed for deployments (e.g. Render) where backend and worker
- * have isolated filesystems and cannot share uploaded video files.
- */
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class TranscodingConsumer {
+    private static final Logger log = LoggerFactory.getLogger(TranscodingConsumer.class);
 
     private final FFmpegService ffmpegService;
     private final RestTemplate restTemplate = new RestTemplate();
@@ -48,9 +37,12 @@ public class TranscodingConsumer {
     @Value("${app.processing.simulate:false}")
     private boolean simulateProcessing;
 
+    public TranscodingConsumer(FFmpegService ffmpegService) {
+        this.ffmpegService = ffmpegService;
+    }
+
     @PostConstruct
     public void init() {
-        // Ensure RestTemplate has Jackson converter for proper JSON serialization
         restTemplate.setMessageConverters(List.of(new MappingJackson2HttpMessageConverter()));
         log.info("TranscodingConsumer initialized: apiBaseUrl={}, simulate={}", apiBaseUrl, simulateProcessing);
     }
@@ -68,134 +60,113 @@ public class TranscodingConsumer {
             }
         } catch (Exception e) {
             log.error("Transcode failed for video {}: {}", message.getVideoId(), e.getMessage(), e);
-            updateStatus(VideoStatusUpdate.builder()
-                    .videoId(message.getVideoId())
-                    .status("FAILED")
-                    .errorMessage(e.getMessage())
-                    .build());
+            VideoStatusUpdate update = new VideoStatusUpdate();
+            update.setVideoId(message.getVideoId());
+            update.setStatus("FAILED");
+            update.setErrorMessage(e.getMessage());
+            updateStatus(update);
         }
     }
 
-    /**
-     * Simulated processing: updates status through the pipeline stages
-     * with realistic delays, without actually transcoding files.
-     * Used when backend and worker don't share a filesystem.
-     */
     private void processSimulated(TranscodeMessage message) throws InterruptedException {
         log.info("Starting SIMULATED processing for video: {}", message.getVideoId());
 
-        // Stage 1: PROCESSING - start
-        updateStatus(VideoStatusUpdate.builder()
-                .videoId(message.getVideoId())
-                .status("PROCESSING")
-                .progressPercent(0)
-                .build());
+        VideoStatusUpdate update1 = new VideoStatusUpdate();
+        update1.setVideoId(message.getVideoId());
+        update1.setStatus("PROCESSING");
+        update1.setProgressPercent(0);
+        updateStatus(update1);
         Thread.sleep(2000);
 
-        // Stage 2: Thumbnail + duration
-        updateStatus(VideoStatusUpdate.builder()
-                .videoId(message.getVideoId())
-                .status("PROCESSING")
-                .progressPercent(10)
-                .duration(120.0) // Simulated 2-minute video
-                .build());
+        VideoStatusUpdate update2 = new VideoStatusUpdate();
+        update2.setVideoId(message.getVideoId());
+        update2.setStatus("PROCESSING");
+        update2.setProgressPercent(10);
+        update2.setDuration(120.0);
+        updateStatus(update2);
         Thread.sleep(3000);
 
-        // Stage 3: 480p done
         log.info("Simulated 480p transcode complete: {}", message.getVideoId());
-        updateStatus(VideoStatusUpdate.builder()
-                .videoId(message.getVideoId())
-                .status("PROCESSING")
-                .progressPercent(35)
-                .transcoded480pPath("transcoded/" + message.getVideoId() + "/" + message.getVideoId() + "_480p.mp4")
-                .build());
+        VideoStatusUpdate update3 = new VideoStatusUpdate();
+        update3.setVideoId(message.getVideoId());
+        update3.setStatus("PROCESSING");
+        update3.setProgressPercent(35);
+        update3.setTranscoded480pPath("transcoded/" + message.getVideoId() + "/" + message.getVideoId() + "_480p.mp4");
+        updateStatus(update3);
         Thread.sleep(3000);
 
-        // Stage 4: 720p done
         log.info("Simulated 720p transcode complete: {}", message.getVideoId());
-        updateStatus(VideoStatusUpdate.builder()
-                .videoId(message.getVideoId())
-                .status("PROCESSING")
-                .progressPercent(65)
-                .transcoded720pPath("transcoded/" + message.getVideoId() + "/" + message.getVideoId() + "_720p.mp4")
-                .build());
+        VideoStatusUpdate update4 = new VideoStatusUpdate();
+        update4.setVideoId(message.getVideoId());
+        update4.setStatus("PROCESSING");
+        update4.setProgressPercent(65);
+        update4.setTranscoded720pPath("transcoded/" + message.getVideoId() + "/" + message.getVideoId() + "_720p.mp4");
+        updateStatus(update4);
         Thread.sleep(3000);
 
-        // Stage 5: 1080p done → COMPLETED
         log.info("Simulated 1080p transcode complete: {}", message.getVideoId());
-        updateStatus(VideoStatusUpdate.builder()
-                .videoId(message.getVideoId())
-                .status("COMPLETED")
-                .progressPercent(100)
-                .transcoded1080pPath("transcoded/" + message.getVideoId() + "/" + message.getVideoId() + "_1080p.mp4")
-                .build());
+        VideoStatusUpdate update5 = new VideoStatusUpdate();
+        update5.setVideoId(message.getVideoId());
+        update5.setStatus("COMPLETED");
+        update5.setProgressPercent(100);
+        update5.setTranscoded1080pPath("transcoded/" + message.getVideoId() + "/" + message.getVideoId() + "_1080p.mp4");
+        updateStatus(update5);
 
         log.info("Simulated transcode completed successfully: {}", message.getVideoId());
     }
 
-    /**
-     * Real processing: uses FFmpeg to transcode files on disk.
-     * Requires backend and worker to share the same filesystem volume.
-     */
     private void processReal(TranscodeMessage message) throws Exception {
-        // Update status to PROCESSING
-        updateStatus(VideoStatusUpdate.builder()
-                .videoId(message.getVideoId())
-                .status("PROCESSING")
-                .progressPercent(0)
-                .build());
+        VideoStatusUpdate update1 = new VideoStatusUpdate();
+        update1.setVideoId(message.getVideoId());
+        update1.setStatus("PROCESSING");
+        update1.setProgressPercent(0);
+        updateStatus(update1);
 
         Path inputPath = Paths.get(storagePath, message.getOriginalBlobPath());
 
-        // Verify input file exists
         if (!Files.exists(inputPath)) {
             throw new RuntimeException("Input file not found: " + inputPath +
                     ". Ensure backend and worker share the same storage volume. " +
                     "If running on Render, set app.processing.simulate=true");
         }
 
-        // Get duration
         double duration = ffmpegService.getVideoDuration(inputPath);
-
-        // Generate thumbnail
         String thumbnailPath = ffmpegService.generateThumbnail(inputPath, message.getVideoId());
-        updateStatus(VideoStatusUpdate.builder()
-                .videoId(message.getVideoId())
-                .status("PROCESSING")
-                .progressPercent(10)
-                .thumbnailPath(thumbnailPath)
-                .duration(duration)
-                .build());
+        
+        VideoStatusUpdate update2 = new VideoStatusUpdate();
+        update2.setVideoId(message.getVideoId());
+        update2.setStatus("PROCESSING");
+        update2.setProgressPercent(10);
+        update2.setThumbnailPath(thumbnailPath);
+        update2.setDuration(duration);
+        updateStatus(update2);
 
-        // Transcode to 480p
         log.info("Transcoding to 480p: {}", message.getVideoId());
         String path480p = ffmpegService.transcode(inputPath, message.getVideoId(), "480p");
-        updateStatus(VideoStatusUpdate.builder()
-                .videoId(message.getVideoId())
-                .status("PROCESSING")
-                .progressPercent(35)
-                .transcoded480pPath(path480p)
-                .build());
+        VideoStatusUpdate update3 = new VideoStatusUpdate();
+        update3.setVideoId(message.getVideoId());
+        update3.setStatus("PROCESSING");
+        update3.setProgressPercent(35);
+        update3.setTranscoded480pPath(path480p);
+        updateStatus(update3);
 
-        // Transcode to 720p
         log.info("Transcoding to 720p: {}", message.getVideoId());
         String path720p = ffmpegService.transcode(inputPath, message.getVideoId(), "720p");
-        updateStatus(VideoStatusUpdate.builder()
-                .videoId(message.getVideoId())
-                .status("PROCESSING")
-                .progressPercent(65)
-                .transcoded720pPath(path720p)
-                .build());
+        VideoStatusUpdate update4 = new VideoStatusUpdate();
+        update4.setVideoId(message.getVideoId());
+        update4.setStatus("PROCESSING");
+        update4.setProgressPercent(65);
+        update4.setTranscoded720pPath(path720p);
+        updateStatus(update4);
 
-        // Transcode to 1080p
         log.info("Transcoding to 1080p: {}", message.getVideoId());
         String path1080p = ffmpegService.transcode(inputPath, message.getVideoId(), "1080p");
-        updateStatus(VideoStatusUpdate.builder()
-                .videoId(message.getVideoId())
-                .status("COMPLETED")
-                .progressPercent(100)
-                .transcoded1080pPath(path1080p)
-                .build());
+        VideoStatusUpdate update5 = new VideoStatusUpdate();
+        update5.setVideoId(message.getVideoId());
+        update5.setStatus("COMPLETED");
+        update5.setProgressPercent(100);
+        update5.setTranscoded1080pPath(path1080p);
+        updateStatus(update5);
 
         log.info("Transcode completed successfully: {}", message.getVideoId());
     }
@@ -213,11 +184,8 @@ public class TranscodingConsumer {
             restTemplate.put(url, request);
             log.info("Status updated successfully: videoId={}, status={}, progress={}%",
                     update.getVideoId(), update.getStatus(), update.getProgressPercent());
-        } catch (HttpClientErrorException e) {
-            log.error("Client error updating status for video {} (HTTP {}): {}",
-                    update.getVideoId(), e.getStatusCode(), e.getResponseBodyAsString(), e);
-        } catch (HttpServerErrorException e) {
-            log.error("Server error updating status for video {} (HTTP {}): {}",
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            log.error("Error updating status for video {} (HTTP {}): {}",
                     update.getVideoId(), e.getStatusCode(), e.getResponseBodyAsString(), e);
         } catch (Exception e) {
             log.error("Failed to update status for video {}: {} ({})",
