@@ -75,7 +75,7 @@ function UploadZone({ onUploadComplete, onError }) {
         />
 
         <span className="upload-icon">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
             <polyline points="17 8 12 3 7 8" />
             <line x1="12" y1="3" x2="12" y2="15" />
@@ -83,18 +83,18 @@ function UploadZone({ onUploadComplete, onError }) {
         </span>
         <p className="upload-text">
           {dragOver
-            ? 'Drop your video here!'
+            ? 'Drop your video here'
             : 'Drag & drop a video or click to browse'}
         </p>
         <p className="upload-subtext">
-          Supports MP4, WebM, MKV, AVI • Up to 3GB
+          MP4, WebM, MKV, AVI — Up to 3GB
         </p>
 
         {file && (
           <div className="upload-form" onClick={(e) => e.stopPropagation()}>
             <div className="upload-form-inputs">
               <div className="selected-file">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '4px' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polygon points="23 7 16 12 23 17 23 7"></polygon>
                   <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
                 </svg>
@@ -117,7 +117,14 @@ function UploadZone({ onUploadComplete, onError }) {
                     Uploading...
                   </>
                 ) : (
-                  'Upload & Process'
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="16 16 12 12 8 16"></polyline>
+                      <line x1="12" y1="12" x2="12" y2="21"></line>
+                      <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path>
+                    </svg>
+                    Upload & Process
+                  </>
                 )}
               </button>
             </div>
